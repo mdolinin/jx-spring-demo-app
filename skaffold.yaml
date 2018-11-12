@@ -1,0 +1,31 @@
+apiVersion: skaffold/v1alpha2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/mdolinin/jx-spring-demo-app:{{.VERSION}}"
+  artifacts:
+  - imageName: changeme
+    workspace: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/mdolinin/jx-spring-demo-app:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: jx-spring-demo-app
+        chartPath: charts/jx-spring-demo-app
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/mdolinin/jx-spring-demo-app"
+          image.tag: "{{.DIGEST_HEX}}"
